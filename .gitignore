@@ -2,3 +2,4 @@
 lua-*/*
 luastatic-*/*
 emsdk-*/*
+test/*
