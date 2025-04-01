@@ -75,13 +75,19 @@ uninstall:
 test/$(t)+$(lua5.1).c:
 	cd $(lua5.1)/src/; make clean
 	cd $(lua5.1)/src/; cp Makefile.gcc Makefile; make
-	CC="" ./$(lua5.1)/src/lua $(ls)/luastatic.lua src/$(t).lua
+	./$(lua5.1)/src/lua $(ls)/luastatic.lua src/$(t).lua \
+		$(lua5.1)/src/liblua.a -I$(lua5.1)/src/
+	#CC="" ./$(lua5.1)/src/lua $(ls)/luastatic.lua src/$(t).lua
 	mv $(t).luastatic.c test/$(t)+$(lua5.1).c
+	mv $(t) test/$(t)+$(lua5.1)
 test/$(t)+$(lua5.4).c:
 	cd $(lua5.4)/src/; make clean
 	cd $(lua5.4)/src/; cp Makefile.gcc Makefile; make
-	CC="" ./$(lua5.4)/src/lua $(ls)/luastatic.lua src/$(t).lua
+	./$(lua5.4)/src/lua $(ls)/luastatic.lua src/$(t).lua \
+		$(lua5.4)/src/liblua.a -I$(lua5.4)/src/
+	#CC="" ./$(lua5.4)/src/lua $(ls)/luastatic.lua src/$(t).lua
 	mv $(t).luastatic.c test/$(t)+$(lua5.4).c
+	mv $(t) test/$(t)+$(lua5.4)
 
 web/emsdk$(emv)+$(lua5.1).html: test/$(t)+$(lua5.1).c
 	cd $(em)/; source ./emsdk_env.sh
@@ -99,9 +105,9 @@ web/emsdk$(emv)+$(lua5.4).html: test/$(t)+$(lua5.4).c
 		-o web/emsdk$(emv)+$(lua5.4).html
 
 clean:
-	rm -f test/$(t)+$(lua5.1).c
+	rm -f test/$(t)+$(lua5.1).c test/$(t)+$(lua5.1)
 	rm -f web/emsdk$(emv)+$(lua5.1).*
-	rm -f test/$(t)+$(lua5.4).c
+	rm -f test/$(t)+$(lua5.4).c test/$(t)+$(lua5.4)
 	rm -f web/emsdk$(emv)+$(lua5.4).*
 
 build5.1: web/emsdk$(emv)+$(lua5.1).html

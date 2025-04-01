@@ -22,8 +22,8 @@ Namely realtime graphics, and in this case,
 |-------|------------|-----------|-----------|
 |  jit  |localmachine|  offline  |  1 second |
 | 5.4.7 |localmachine|  offline  |  6 seconds|
-| 5.1.5 |localmachine|  offline  | 12 seconds|
-| 5.4.7 | emsdk4.0.6 |Chrome 135.| 23 seconds|
+| 5.1.5 |localmachine|  offline  | 11 seconds|
+| 5.4.7 | emsdk4.0.6 |Chrome 135.| 22 seconds|
 | 5.4.7 | emsdk4.0.6 |Firefox 136| 25 seconds|
 | 5.1.5 | emsdk4.0.6 |Firefox 136| 30 seconds|
 | 5.1.5 | emsdk4.0.6 |Chrome 135.| 47 seconds|
