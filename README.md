@@ -31,7 +31,6 @@ Namely realtime graphics, and in this case,
 | 5.3.x | fengari.js |Firefox 136|182 seconds|
 
 ### Current Implementations waiting to be reproduced
-- **TODO:** add luastatic executables to build script
 - **fengari redux:** build from source, see if it's better
 - **love.js:** assuming similar to emscripten, TBD
 
