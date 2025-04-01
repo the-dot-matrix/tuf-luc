@@ -20,7 +20,11 @@ Namely realtime graphics, and in this case, supporting love2d/lovejs.
 - **[luajit](https://github.com/LuaJIT/LuaJIT):** 1 second
 #### Online Performance
 - **[fengari (lua 5.3 vm)](https://github.com/fengari-lua/fengari):** 169 seconds
+- **my own lua.wasm vm (why is fengari so slow?):** TBD
+- **love.js (assuming similar to emscripten):** TBD
 - **[lua5.1+luastatic+emscripten](https://github.com/emscripten-core/emscripten):** TBD
+- **[lua5.4+luastatic+emscripten](https://github.com/emscripten-core/emscripten):** 13 seconds
+
 #### Novel Implementations to be investigated and developed...
 ##### ... in order of increasing non-triviality
 - **Clear extension, [Decent Blog Post](https://cfallin.org/blog/2024/08/28/weval/):** [WASM partial eval](https://github.com/bytecodealliance/weval?tab=readme-ov-file), 1st Futamura Projection, Interpreter->Compiler
