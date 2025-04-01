@@ -1,8 +1,36 @@
 SHELL := /bin/bash
+lua5.1 = lua-5.1.5
+plat = linux
 lua5.4 = lua-5.4.7
+art = archive/refs/tags/
 lsv = 0.0.12
+ls = luastatic-$(lsv)
+lsurl = https://github.com/ers35/luastatic/
 emv = 4.0.6
+em = emsdk-$(emv)
+emurl = https://github.com/emscripten-core/emsdk/
+t = mergesort
 default: server
+
+$(lua5.1).tar.gz:
+	wget https://www.lua.org/ftp/$(lua5.1).tar.gz
+$(lua5.1)/: $(lua5.1).tar.gz
+	tar -xvzf $(lua5.1).tar.gz
+	cd $(lua5.1)/src/; \
+		sed -i 's/PLAT= none/PLAT= $(plat)/g' Makefile; \
+		sed -i 's/-lreadline/ /g' Makefile; \
+		sed -i 's/-lhistory/ /g' Makefile; \
+		sed -i 's/-lncurses/ /g' Makefile; \
+		sed -i 's/lua_readline(L, b, prmt)/0/g' lua.c; \
+		sed -i 's/#define LUA_USE_READLINE/ /g' luaconf.h; \
+		cp Makefile Makefile.orig;
+$(lua5.1)/Makefile.gcc: $(lua5.1)/
+	cd $(lua5.1)/src/; cp Makefile.orig Makefile.gcc;
+$(lua5.1)/Makefile.emcc: $(lua5.1)/
+	cd $(lua5.1)/src/; \
+		cp Makefile.orig Makefile.emcc; \
+		sed -i 's/gcc/emcc/g' Makefile.emcc;
+lua5.1: $(lua5.1)/Makefile.gcc $(lua5.1)/Makefile.emcc
 
 $(lua5.4).tar.gz:
 	wget https://www.lua.org/ftp/$(lua5.4).tar.gz
@@ -12,48 +40,71 @@ $(lua5.4)/: $(lua5.4).tar.gz
 $(lua5.4)/Makefile.gcc: $(lua5.4)/
 	cd $(lua5.4)/src/; cp Makefile.orig Makefile.gcc;
 $(lua5.4)/Makefile.emcc: $(lua5.4)/
-	cd $(lua5.4)/src/; cp Makefile.orig Makefile.emcc; sed -i 's/gcc/emcc/g' Makefile.emcc;
-$(lua5.4): $(lua5.4)/Makefile.gcc $(lua5.4)/Makefile.emcc
+	cd $(lua5.4)/src/; \
+		cp Makefile.orig Makefile.emcc; \
+		sed -i 's/gcc/emcc/g' Makefile.emcc;
+lua5.4: $(lua5.4)/Makefile.gcc $(lua5.4)/Makefile.emcc
 
-luastatic-$(lsv).tar.gz:
-	wget https://github.com/ers35/luastatic/archive/refs/tags/$(lsv).tar.gz -O luastatic-$(lsv).tar.gz
-luastatic-$(lsv)/: luastatic-$(lsv).tar.gz
-	tar -xvzf luastatic-$(lsv).tar.gz
-luastatic: luastatic-$(lsv)/
+$(ls).tar.gz:
+	wget $(lsurl)$(art)$(lsv).tar.gz -O $(ls).tar.gz
+$(ls)/: $(ls).tar.gz
+	tar -xvzf $(ls).tar.gz
+luastatic: $(ls)/
 
 $(emv).tar.gz:
-	wget https://github.com/emscripten-core/emsdk/archive/refs/tags/$(emv).tar.gz -O emsdk-$(emv).tar.gz
-emsdk-$(emv)/: $(emv).tar.gz
-	tar -xvzf emsdk-$(emv).tar.gz
-emsdk-$(emv)/upstream/: emsdk-$(emv)/
-	cd emsdk-$(emv)/; ./emsdk install latest; ./emsdk activate latest;
-emsdk: emsdk-$(emv)/upstream/
+	wget $(emurl)$(art)$(emv).tar.gz -O $(em).tar.gz
+$(em)/: $(emv).tar.gz
+	tar -xvzf $(em).tar.gz
+$(em)/upstream/: $(em)/
+	cd $(em)/; \
+		./emsdk install latest; \
+		./emsdk activate latest;
+emsdk: $(em)/upstream/
 
-install: $(lua5.4) luastatic emsdk
+install: lua5.1 lua5.4 luastatic emsdk
 uninstall:
+	rm -rf $(lua5.1)/
+	rm -f $(lua5.1).tar.gz
 	rm -rf $(lua5.4)/
 	rm -f $(lua5.4).tar.gz
-	rm -rf luastatic-$(lsv)/
-	rm -f luastatic-$(lsv).tar.gz
-	rm -rf emsdk-$(emv)/
-	rm -f emsdk-$(emv).tar.gz
+	rm -rf $(ls)/
+	rm -f $(ls).tar.gz
+	rm -rf $(em)/
+	rm -f $(em).tar.gz
 
-test/mergesort.luastatic.c:
+test/$(t)+$(lua5.1).c:
+	cd $(lua5.1)/src/; make clean
+	cd $(lua5.1)/src/; cp Makefile.gcc Makefile; make
+	CC="" ./$(lua5.1)/src/lua $(ls)/luastatic.lua src/$(t).lua
+	mv $(t).luastatic.c test/$(t)+$(lua5.1).c
+test/$(t)+$(lua5.4).c:
 	cd $(lua5.4)/src/; make clean
 	cd $(lua5.4)/src/; cp Makefile.gcc Makefile; make
-	CC="" ./$(lua5.4)/src/lua luastatic-$(lsv)/luastatic.lua src/mergesort.lua
-	mv mergesort.luastatic.c test/
+	CC="" ./$(lua5.4)/src/lua $(ls)/luastatic.lua src/$(t).lua
+	mv $(t).luastatic.c test/$(t)+$(lua5.4).c
 
-web/emsdk$(emv)+$(lua5.4).html: test/mergesort.luastatic.c
-	cd emsdk-$(emv)/; source ./emsdk_env.sh
+web/emsdk$(emv)+$(lua5.1).html: test/$(t)+$(lua5.1).c
+	cd $(em)/; source ./emsdk_env.sh
+	cd $(lua5.1)/src/; make clean
+	cd $(lua5.1)/src/; cp Makefile.emcc Makefile; make
+	emcc test/$(t)+$(lua5.1).c -I$(lua5.1)/src/ \
+		-llua -L$(lua5.1)/src/ \
+		-o web/emsdk$(emv)+$(lua5.1).html
+web/emsdk$(emv)+$(lua5.4).html: test/$(t)+$(lua5.4).c
+	cd $(em)/; source ./emsdk_env.sh
 	cd $(lua5.4)/src/; make clean
 	cd $(lua5.4)/src/; cp Makefile.emcc Makefile; make
-	emcc test/mergesort.luastatic.c -I$(lua5.4)/src/ -llua -L$(lua5.4)/src/ -o web/emsdk$(emv)+$(lua5.4).html
+	emcc test/$(t)+$(lua5.4).c -I$(lua5.4)/src/ \
+		-llua -L$(lua5.4)/src/ \
+		-o web/emsdk$(emv)+$(lua5.4).html
 
 clean:
-	rm -f test/mergesort.luastatic.c
-	rm -f web/emsdk$(emv)+$(lua5.4).html web/emsdk$(emv)+$(lua5.4).js web/emsdk$(emv)+$(lua5.4).wasm
+	rm -f test/$(t)+$(lua5.1).c
+	rm -f web/emsdk$(emv)+$(lua5.1).*
+	rm -f test/$(t)+$(lua5.4).c
+	rm -f web/emsdk$(emv)+$(lua5.4).*
 
-build: web/emsdk$(emv)+$(lua5.4).html
-server: build
+build5.1: web/emsdk$(emv)+$(lua5.1).html
+build5.4: web/emsdk$(emv)+$(lua5.4).html
+server: build5.1 build5.4
 	python3 -m http.server --directory web
