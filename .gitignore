@@ -1,3 +1,4 @@
-lua-5.4.7/*
-luastatic*
-*.c
+*.tar.gz
+lua-*/*
+luastatic-*/*
+emsdk-*/*
